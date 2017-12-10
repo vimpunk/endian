@@ -31,7 +31,7 @@ constexpr void write(const T& h, OutputIt it, little _) noexcept;
 
 /**
  * Parses `sizeof(T)` bytes from the memory pointed to by `it`, and reconstructs from it
- * an integer of type `T`, converting from `Endianness` to host byte order, or `host`.
+ * an integer of type `T`, converting from the specified `Endianness` to host byte order.
  *
  * The byte sequence must have at least `sizeof(T)` bytes.
  * `Endianness` must be either `endian::big`, `endian::little`, `endian::network`, or
@@ -83,7 +83,10 @@ constexpr T write(const T& h, InputIt it) noexcept
 
 namespace detail {
 
-/** Parses an integer of type `T` from `it` and converts it to big endian order. */
+/**
+ * Parses an integer of type `T` from buffer pointed to by `it` and converts it to big
+ * endian order.
+ */
 template<typename T, typename InputIt>
 constexpr T parse(InputIt it, big _) noexcept
 {
@@ -96,7 +99,10 @@ constexpr T parse(InputIt it, big _) noexcept
     return h;
 }
 
-/** Parses an integer of type `T` from `it` and converts it to little endian order. */
+/**
+ * Parses an integer of type `T` from buffer pointed to by `it` and converts it to
+ * little endian order.
+ */
 template<typename T, typename InputIt>
 constexpr T parse(InputIt it, little _) noexcept
 {
