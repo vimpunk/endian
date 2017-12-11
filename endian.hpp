@@ -2,6 +2,7 @@
 #define MND_ENDIAN_HEADER
 
 #include <cstdint>
+#include <type_traits>
 
 namespace endian {
 
@@ -19,6 +20,7 @@ using host = little;
 #endif
 
 namespace detail {
+
 template<typename T, typename InputIt>
 constexpr T parse(InputIt it, big _) noexcept;
 template<typename T, typename InputIt>
@@ -27,6 +29,10 @@ template<typename T, typename OutputIt>
 constexpr void write(const T& h, OutputIt it, big _) noexcept;
 template<typename T, typename OutputIt>
 constexpr void write(const T& h, OutputIt it, little _) noexcept;
+
+template<typename Endianness> struct is_endianness;
+template<typename It, typename = void> struct is_iterator;
+
 } // detail
 
 /**
@@ -51,6 +57,13 @@ constexpr void write(const T& h, OutputIt it, little _) noexcept;
 template<typename Endianness, typename T, typename InputIt>
 constexpr T parse(InputIt it) noexcept
 {
+    static_assert(detail::is_endianness<Endianness>::value,
+        "Endianness type requirements not met, which must be either endian::big, "
+        "endian::little, endian::network, or endian::host");
+    static_assert(std::is_integral<T>::value || std::is_pod<T>::value,
+        "T must be an integral or POD type");
+    static_assert(detail::is_iterator<InputIt>::value,
+        "Iterator type requirements not met");
     return detail::parse<T>(it, Endianness());
 }
 
@@ -73,9 +86,16 @@ constexpr T parse(InputIt it) noexcept
  * endian::write<endian::little>(number, &buffer[4]);
  * ```
  */
-template<typename Endianness, typename T, typename InputIt>
-constexpr T write(const T& h, InputIt it) noexcept
+template<typename Endianness, typename T, typename OutputIt>
+constexpr T write(const T& h, OutputIt it) noexcept
 {
+    static_assert(detail::is_endianness<Endianness>::value,
+        "Endianness type requirements not met, which must be either endian::big, "
+        "endian::little, endian::network, or endian::host");
+    static_assert(std::is_integral<T>::value || std::is_pod<T>::value,
+        "T must be an integral or POD type");
+    static_assert(detail::is_iterator<OutputIt>::value,
+        "Iterator type requirements not met");
     detail::write<T>(h, it, Endianness());
 }
 
@@ -133,6 +153,28 @@ constexpr void write(const T& h, OutputIt it, little _) noexcept
         *it++ = static_cast<uint8_t>((h >> i * 8) & 0xff);
     }
 }
+
+template<typename T> struct is_endianness
+{
+    static constexpr bool value =
+        std::is_same<typename std::decay<T>::type, endian::big>::value ||
+        std::is_same<typename std::decay<T>::type, endian::little>::value;
+};
+
+template<typename... Ts> struct make_void { using type = void; };
+
+template<typename... Ts>
+using void_t = typename make_void<Ts...>::type;
+
+template<typename T, typename>
+struct is_iterator : std::false_type {};
+
+template<typename T>
+struct is_iterator<T, void_t<
+        decltype(*std::declval<T&>()),
+        decltype(++std::declval<T&>()),
+        decltype(std::declval<T&>()++)>>
+    : std::true_type {};
 
 } // detail
 } // endian
