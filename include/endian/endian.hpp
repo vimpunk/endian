@@ -1,6 +1,8 @@
 #ifndef MND_ENDIAN_HEADER
 #define MND_ENDIAN_HEADER
 
+#include "detail/arch.hpp"
+
 #include <cstdint>
 #include <type_traits>
 
@@ -10,13 +12,10 @@ namespace endian {
 struct big {};
 struct little {};
 using network = big;
-#ifdef ENDIAN_BIG
+#if defined(MND_BIG_ENDIAN)
 using host = big;
-//#elif ENDIAN_LITTLE
-#else // TODO for now
+#elif defined(MND_LITTLE_ENDIAN)
 using host = little;
-//#else
-//# error "Architecture endianness not supported."
 #endif
 
 namespace detail {
@@ -30,14 +29,19 @@ constexpr void write(const T& h, OutputIt it, big _) noexcept;
 template<typename T, typename OutputIt>
 constexpr void write(const T& h, OutputIt it, little _) noexcept;
 
-template<typename Endianness> struct is_endianness;
-template<typename It, typename = void> struct is_iterator;
+template<typename T> struct is_endianness;
+template<typename T> struct is_endian_reversible;
+template<typename T, typename = void> struct is_iterator;
+template<typename T> T byte_swap(const T& t) noexcept;
+template<typename Endianness, typename T> T conditional_reverse(const T& t) noexcept;
 
 } // detail
 
 /**
  * Parses `sizeof(T)` bytes from the memory pointed to by `it`, and reconstructs from it
  * an integer of type `T`, converting from the specified `Endianness` to host byte order.
+ *
+ * It's undefined behaviour if `it` points to a buffer smaller than `sizeof(T)` bytes.
  *
  * The byte sequence must have at least `sizeof(T)` bytes.
  * `Endianness` must be either `endian::big`, `endian::little`, `endian::network`, or
@@ -60,7 +64,7 @@ constexpr T parse(InputIt it) noexcept
     static_assert(detail::is_endianness<Endianness>::value,
         "Endianness type requirements not met, which must be either endian::big, "
         "endian::little, endian::network, or endian::host");
-    static_assert(std::is_integral<T>::value || std::is_pod<T>::value,
+    static_assert(detail::is_endian_reversible<T>::value,
         "T must be an integral or POD type");
     static_assert(detail::is_iterator<InputIt>::value,
         "Iterator type requirements not met");
@@ -70,6 +74,8 @@ constexpr T parse(InputIt it) noexcept
 /**
  * Writes each byte of `h` to the memory pointed to by `it`, such that it converts the
  * byte order of `h` from host byte order to the specified `Endianness`.
+ *
+ * It's undefined behaviour if `it` points to a buffer smaller than `sizeof(T)` bytes.
  *
  * The byte sequence must have at least `sizeof(T)` bytes.
  * `Endianness` must be either `endian::big`, `endian::little`, `endian::network`, or
@@ -92,11 +98,49 @@ constexpr T write(const T& h, OutputIt it) noexcept
     static_assert(detail::is_endianness<Endianness>::value,
         "Endianness type requirements not met, which must be either endian::big, "
         "endian::little, endian::network, or endian::host");
-    static_assert(std::is_integral<T>::value || std::is_pod<T>::value,
+    static_assert(detail::is_endian_reversible<T>::value,
         "T must be an integral or POD type");
     static_assert(detail::is_iterator<OutputIt>::value,
         "Iterator type requirements not met");
     detail::write<T>(h, it, Endianness());
+}
+
+/**
+ * Reverses endianness, i.e. the byte order in `t`. E.g. given the 32-bit number
+ * '0x1234', this function returns '0x4321'.
+ */
+template<typename T>
+constexpr T reverse(const T& t)
+{
+    return detail::byte_swap<T>(t);
+}
+
+/**
+ * Conditionally converts to the specified endianness if and only if the host's byte
+ * order differs from `Endianness`.
+ */
+template<typename Endianness, typename T>
+constexpr T convert_to(const T& t) noexcept
+{
+    return detail::conditional_reverse<Endianness, T>(t);
+}
+
+template<typename T>
+constexpr T host_to_network(const T& t)
+{
+    return convert_to<network>(t);
+}
+
+template<typename T>
+constexpr T network_to_host(const T& t)
+{
+    return convert_to<host>(t);
+}
+
+template<typename Endianness>
+constexpr bool is_host() noexcept
+{
+    return std::is_same<Endianness, host>::value;
 }
 
 // ~ * ~
@@ -154,14 +198,22 @@ constexpr void write(const T& h, OutputIt it, little _) noexcept
     }
 }
 
-template<typename T> struct is_endianness
+template<typename T>
+struct is_endianness
 {
     static constexpr bool value =
         std::is_same<typename std::decay<T>::type, endian::big>::value ||
         std::is_same<typename std::decay<T>::type, endian::little>::value;
 };
 
-template<typename... Ts> struct make_void { using type = void; };
+template<typename T>
+struct is_endian_reversible
+{
+    static constexpr bool value = std::is_integral<T>::value || std::is_pod<T>::value;
+};
+
+template<typename... Ts>
+struct make_void { using type = void; };
 
 template<typename... Ts>
 using void_t = typename make_void<Ts...>::type;
@@ -175,6 +227,56 @@ struct is_iterator<T, void_t<
         decltype(++std::declval<T&>()),
         decltype(std::declval<T&>()++)>>
     : std::true_type {};
+
+template<size_t Size>
+struct byte_swapper {};
+
+template<>
+struct byte_swapper<2>
+{
+    template<typename T>
+    T swap(const T& t) { return MND_BYTE_SWAP_16(t); }
+};
+
+template<>
+struct byte_swapper<4>
+{
+    template<typename T>
+    T swap(const T& t) { return MND_BYTE_SWAP_32(t); }
+};
+
+template<>
+struct byte_swapper<8>
+{
+    template<typename T>
+    T swap(const T& t) { return MND_BYTE_SWAP_64(t); }
+};
+
+template<typename T>
+T byte_swap(const T& t) noexcept
+{
+    return byte_swapper<sizeof(T)>().swap(t);
+};
+
+template<typename Endianness>
+struct conditional_reverser
+{
+    template<typename T>
+    constexpr T operator()(const T& t) { return reverse(t); }
+};
+
+template<>
+struct conditional_reverser<host>
+{
+    template<typename T>
+    constexpr T operator()(const T& t) { return t; }
+};
+
+template<typename Endianness, typename T>
+T conditional_reverse(const T& t) noexcept
+{
+    return conditional_reverser<Endianness>()(t);
+}
 
 } // detail
 } // endian
