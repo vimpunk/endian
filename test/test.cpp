@@ -41,5 +41,5 @@ int main()
     endian::host_to_network(5);
     endian::network_to_host(5);
 
-    if(endian::order::little == endian::order::host) {}
+    if(endian::order::host == endian::order::little) {}
 }
