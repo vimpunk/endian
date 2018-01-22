@@ -187,7 +187,9 @@ constexpr T host_to_network(const T& t)
 template<typename T>
 constexpr T network_to_host(const T& t)
 {
-    return convert_to<order::host>(t);
+    // hton and ntoh are essentially the same, as they both do a byte swap if and only
+    // if the host's and network's byte orders differ.
+    return host_to_network(t);
 }
 
 } // endian

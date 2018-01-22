@@ -23,8 +23,8 @@ enum class order {
  * It's undefined behaviour if `it` points to a buffer smaller than `sizeof(T)` bytes.
  *
  * The byte sequence must have at least `sizeof(T)` bytes.
- * `Order` must be either `endian::big`, `endian::little`, `endian::network`, or
- * `endian::host`.
+ * `Order` must be either `endian::order::big`, `endian::order::little`,
+ * `endian::order::network`, or `endian::order::host`.
  *
  * This is best used when data received during IO is read into a buffer and numbers
  * need to be parsed from it. E.g.:
@@ -34,7 +34,7 @@ enum class order {
  * // ...
  * // The first four bytes constitute a 32-bit integer, represented as big endian in the
  * // buffer, so parse the beginning of the buffer.
- * int32_t n = endian::parse<endian::big, int32_t>(buffer.data());
+ * int32_t n = endian::parse<endian::order::big, int32_t>(buffer.data());
  * ```
  */
 template<order Order, typename T, typename InputIt>
@@ -78,9 +78,17 @@ constexpr T reverse(const T& t);
 template<order Order, typename T>
 constexpr T convert_to(const T& t) noexcept;
 
+/**
+ * Conditionally converts to network byte order if and only if the host's byte order is
+ * different. Equivalent to the POSIX hton* functions.
+ */
 template<typename T>
 constexpr T host_to_network(const T& t);
 
+/**
+ * Conditionally converts to host byte order if and only if the host's byte order is
+ * different. Equivalent to the POSIX ntoh* functions.
+ */
 template<typename T>
 constexpr T network_to_host(const T& t);
 
