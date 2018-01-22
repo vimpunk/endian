@@ -138,12 +138,6 @@ struct conditional_reverser<order::host>
     constexpr T operator()(const T& t) { return t; }
 };
 
-template<order Order, typename T>
-T conditional_reverse(const T& t) noexcept
-{
-    return conditional_reverser<Order>()(t);
-}
-
 } // detail
 
 template<order Order, typename T, typename InputIt>
@@ -173,15 +167,15 @@ constexpr T reverse(const T& t)
 }
 
 template<order Order, typename T>
-constexpr T convert_to(const T& t) noexcept
+constexpr T conditional_reverse(const T& t) noexcept
 {
-    return detail::conditional_reverse<Order, T>(t);
+    return detail::conditional_reverser<Order>()(t);
 }
 
 template<typename T>
 constexpr T host_to_network(const T& t)
 {
-    return convert_to<order::network>(t);
+    return conditional_reverse<order::network>(t);
 }
 
 template<typename T>

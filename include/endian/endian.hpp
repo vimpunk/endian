@@ -76,18 +76,30 @@ constexpr T reverse(const T& t);
  * order differs from `Order`.
  */
 template<order Order, typename T>
-constexpr T convert_to(const T& t) noexcept;
+constexpr T conditional_reverse(const T& t) noexcept;
 
 /**
  * Conditionally converts to network byte order if and only if the host's byte order is
- * different. Equivalent to the POSIX hton* functions.
+ * different from the network byte order.
+ * Functionally equivalent to the POSIX ntoh* functions or to this code:
+ * ```
+ * int t = 42;
+ * if(endian::order::host != endian::order::network)
+ *     t = endian::reverse(t);
+ * ```
  */
 template<typename T>
 constexpr T host_to_network(const T& t);
 
 /**
  * Conditionally converts to host byte order if and only if the host's byte order is
- * different. Equivalent to the POSIX ntoh* functions.
+ * different from the network byte order.
+ * Functionally equivalent to the POSIX ntoh* functions or to this code:
+ * ```
+ * int t = 42;
+ * if(endian::order::host != endian::order::network)
+ *     t = endian::reverse(t);
+ * ```
  */
 template<typename T>
 constexpr T network_to_host(const T& t);

@@ -53,11 +53,7 @@ int main()
     test::host_network_conv();
 
     if(endian::order::host == endian::order::little)
-    {
         std::printf("host is little endian\n");
-    }
     else
-    {
         std::printf("host is big endian\n");
-    }
 }
