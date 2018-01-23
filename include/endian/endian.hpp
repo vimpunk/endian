@@ -32,8 +32,8 @@ enum class order {
  * std::array<char, 1024> buffer;
  * // Receive into `buffer`.
  * // ...
- * // The first four bytes constitute a 32-bit integer, represented as big endian in the
- * // buffer, so parse the beginning of the buffer.
+ * // Assume that the first four bytes in `buffer` constitute a 32-bit big endian
+ * // integer.
  * int32_t n = endian::parse<endian::order::big, int32_t>(buffer.data());
  * ```
  */
@@ -76,16 +76,20 @@ constexpr T reverse(const T& t);
  * order differs from `Order`.
  */
 template<order Order, typename T>
-constexpr T conditional_reverse(const T& t) noexcept;
+constexpr T conditional_convert(const T& t) noexcept;
 
 /**
  * Conditionally converts to network byte order if and only if the host's byte order is
  * different from the network byte order.
+ *
  * Functionally equivalent to the POSIX ntoh* functions or to this code:
  * ```
- * int t = 42;
  * if(endian::order::host != endian::order::network)
  *     t = endian::reverse(t);
+ * ```
+ * Or:
+ * ```
+ * t = endian::conditional_convert<endian::order::network>(t);
  * ```
  */
 template<typename T>
@@ -94,11 +98,15 @@ constexpr T host_to_network(const T& t);
 /**
  * Conditionally converts to host byte order if and only if the host's byte order is
  * different from the network byte order.
+ *
  * Functionally equivalent to the POSIX ntoh* functions or to this code:
  * ```
- * int t = 42;
  * if(endian::order::host != endian::order::network)
  *     t = endian::reverse(t);
+ * ```
+ * Or:
+ * ```
+ * t = endian::conditional_convert<endian::order::network>(t);
  * ```
  */
 template<typename T>

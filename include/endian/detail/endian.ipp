@@ -167,7 +167,7 @@ constexpr T reverse(const T& t)
 }
 
 template<order Order, typename T>
-constexpr T conditional_reverse(const T& t) noexcept
+constexpr T conditional_convert(const T& t) noexcept
 {
     return detail::conditional_reverser<Order>()(t);
 }
@@ -175,7 +175,7 @@ constexpr T conditional_reverse(const T& t) noexcept
 template<typename T>
 constexpr T host_to_network(const T& t)
 {
-    return conditional_reverse<order::network>(t);
+    return conditional_convert<order::network>(t);
 }
 
 template<typename T>
