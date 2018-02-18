@@ -2,9 +2,9 @@
 #define MND_ENDIAN_IMPl
 
 #include "../endian.hpp"
+#include "type_traits.hpp"
 
 #include <cstdint>
-#include <type_traits>
 
 namespace endian {
 namespace detail {
@@ -66,32 +66,6 @@ write(const T& h, OutputIt it) noexcept
 
 // --
 
-template<typename T>
-struct is_endian_reversible
-{
-    static constexpr bool value = std::is_integral<T>::value || std::is_pod<T>::value;
-};
-
-// --
-
-template<typename... Ts>
-struct make_void { using type = void; };
-
-template<typename... Ts>
-using void_t = typename make_void<Ts...>::type;
-
-template<typename T, typename>
-struct is_input_iterator : std::false_type {};
-
-template<typename T>
-struct is_input_iterator<T, void_t<
-        decltype(*std::declval<T&>()),
-        decltype(++std::declval<T&>()),
-        decltype(std::declval<T&>()++)>>
-    : std::true_type {};
-
-// --
-
 template<size_t Size>
 struct byte_swapper {};
 
@@ -114,12 +88,6 @@ struct byte_swapper<8>
 {
     template<typename T>
     T operator()(const T& t) { return MND_BYTE_SWAP_64(t); }
-};
-
-template<typename T>
-T byte_swap(const T& t) noexcept
-{
-    return byte_swapper<sizeof(T)>()(t);
 };
 
 // --
@@ -163,7 +131,7 @@ constexpr T write(const T& h, OutputIt it) noexcept
 template<typename T>
 constexpr T reverse(const T& t)
 {
-    return detail::byte_swap<T>(t);
+    return detail::byte_swapper<sizeof t>()(t);
 }
 
 template<order Order, typename T>
