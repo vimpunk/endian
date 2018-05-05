@@ -11,14 +11,14 @@ This is a header-only library, so just place the contents of the `include` folde
 
 ### Working with buffers
 
-Convert from Network Byte Order to Host Byte Order using a receive buffer.
+Convert from Network Byte Order to Host Byte Order, e.g. when using a receive buffer.
 ```c++
 std::vector<char> buffer;
 // ... receive data into buffer
 const int64_t i = endian::parse<endian::order::network, int64_t>(buffer.data());
 ```
 
-Convert from Host Byte Order to Network Byte Order using a send buffer.
+Convert from Host Byte Order to Network Byte Order, e.g. when using a send buffer.
 ```c++
 std::vector<char> buffer;
 const int16_t number = 42; 
@@ -30,7 +30,7 @@ endian::write<endian::order::network>(number, buffer.data());
 ```c++
 const int16_t a = 0x1234; 
 const int16_t b = endian::reverse(a);
-// b is 0x4321
+// b is 0x3412
 ```
 
 Alternatively, only reverse byte order if target endianness and host's endianness differ.
