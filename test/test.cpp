@@ -6,21 +6,21 @@
 
 namespace test {
 
-template<endian::order Order> void parse1()
+template<endian::order Order> void read1()
 {
     char buffer[4];
     const int32_t num = 21344;
     endian::write<Order>(num, buffer);
-    const int32_t res = endian::parse<Order, int32_t>(buffer);
+    const int32_t res = endian::read<Order, int32_t>(buffer);
     assert(res == num);
 }
 
-template<endian::order Order> void parse2()
+template<endian::order Order> void read2()
 {
     int32_t buffer;
     const int32_t num = 21344;
     endian::write<Order>(num, reinterpret_cast<char*>(&buffer));
-    const int32_t res = endian::parse<Order, int32_t>(
+    const int32_t res = endian::read<Order, int32_t>(
         reinterpret_cast<char*>(&buffer));
     assert(res == num);
 }
@@ -43,11 +43,11 @@ void host_network_conv()
 
 int main()
 {
-    test::parse1<endian::order::big>();
-    test::parse1<endian::order::little>();
+    test::read1<endian::order::big>();
+    test::read1<endian::order::little>();
 
-    test::parse2<endian::order::big>();
-    test::parse2<endian::order::little>();
+    test::read2<endian::order::big>();
+    test::read2<endian::order::little>();
 
     test::reverse();
     test::host_network_conv();

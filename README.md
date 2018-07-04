@@ -15,7 +15,7 @@ Convert from Network Byte Order to Host Byte Order, e.g. when using a receive bu
 ```c++
 std::vector<char> buffer;
 // ... receive data into buffer
-const int64_t i = endian::parse<endian::order::network, int64_t>(buffer.data());
+const int64_t i = endian::read<endian::order::network, int64_t>(buffer.data());
 ```
 
 Convert from Host Byte Order to Network Byte Order, e.g. when using a send buffer.

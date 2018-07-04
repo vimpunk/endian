@@ -10,12 +10,12 @@ namespace endian {
 namespace detail {
 
 /**
- * Parses an integer of type `T` from buffer pointed to by `it` and converts it to BIG
+ * Reads an integer of type `T` from buffer pointed to by `it` and converts it to BIG
  * endian order.
  */
 template<order Order, typename T, typename InputIt>
 constexpr typename std::enable_if<Order == order::big, T>::type
-parse(InputIt it) noexcept
+read(InputIt it) noexcept
 {
     T h = 0;
     for(int i = 0; i < int(sizeof h); ++i)
@@ -27,12 +27,12 @@ parse(InputIt it) noexcept
 }
 
 /**
- * Parses an integer of type `T` from buffer pointed to by `it` and converts it to
+ * Reads an integer of type `T` from buffer pointed to by `it` and converts it to
  * LITTLE endian order.
  */
 template<order Order, typename T, typename InputIt>
 constexpr typename std::enable_if<Order == order::little, T>::type
-parse(InputIt it) noexcept
+read(InputIt it) noexcept
 {
     T h = 0;
     for(int i = 0; i < int(sizeof h); ++i)
@@ -109,13 +109,13 @@ struct conditional_reverser<order::host>
 } // detail
 
 template<order Order, typename T, typename InputIt>
-constexpr T parse(InputIt it) noexcept
+constexpr T read(InputIt it) noexcept
 {
     static_assert(detail::is_endian_reversible<T>::value,
         "T must be an integral or POD type");
     //static_assert(detail::is_input_iterator<InputIt>::value,
         //"Iterator type requirements not met");
-    return detail::parse<Order, T>(it);
+    return detail::read<Order, T>(it);
 }
 
 template<order Order, typename T, typename OutputIt>

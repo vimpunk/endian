@@ -27,18 +27,21 @@ enum class order {
  * `endian::order::network`, or `endian::order::host`.
  *
  * This is best used when data received during IO is read into a buffer and numbers
- * need to be parsed from it. E.g.:
+ * need to be read from it. E.g.:
  * ```
  * std::array<char, 1024> buffer;
  * // Receive into `buffer`.
  * // ...
  * // Assume that the first four bytes in `buffer` constitute a 32-bit big endian
  * // integer.
- * int32_t n = endian::parse<endian::order::big, int32_t>(buffer.data());
+ * int32_t n = endian::read<endian::order::big, int32_t>(buffer.data());
  * ```
  */
 template<order Order, typename T, typename InputIt>
-constexpr T parse(InputIt it) noexcept;
+constexpr T read(InputIt it) noexcept;
+// DEPRECATED
+template<order Order, typename T, typename InputIt>
+constexpr T parse(InputIt it) noexcept { return parse<Order, T>(it); }
 
 /**
  * Writes each byte of `h` to the memory pointed to by `it`, such that it converts the
