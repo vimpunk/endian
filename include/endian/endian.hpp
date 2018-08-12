@@ -71,7 +71,7 @@ constexpr T parse(InputIt it) noexcept { return parse<Order, T>(it); }
  * ```
  */
 template<order Order, typename T, typename OutputIt>
-constexpr T write(const T& h, OutputIt it) noexcept;
+constexpr void write(const T& h, OutputIt it) noexcept;
 
 /**
  * Reverses endianness, i.e. the byte order in `t`. E.g. given the 16-bit number

@@ -119,7 +119,7 @@ constexpr T read(InputIt it) noexcept
 }
 
 template<order Order, typename T, typename OutputIt>
-constexpr T write(const T& h, OutputIt it) noexcept
+constexpr void write(const T& h, OutputIt it) noexcept
 {
     static_assert(detail::is_endian_reversible<T>::value,
         "T must be an integral or POD type");
