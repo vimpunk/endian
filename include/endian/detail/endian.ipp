@@ -10,8 +10,8 @@ namespace endian {
 namespace detail {
 
 /**
- * Reads an integer of type `T` from buffer pointed to by `it` and converts it to BIG
- * endian order.
+ * Reads an integer of type `T` from buffer pointed to by `it` and converts it
+ * from BIG endian order.
  */
 template<order Order, typename T, typename InputIt>
 constexpr typename std::enable_if<Order == order::big, T>::type
@@ -27,8 +27,8 @@ read(InputIt it) noexcept
 }
 
 /**
- * Reads an integer of type `T` from buffer pointed to by `it` and converts it to
- * LITTLE endian order.
+ * Reads an integer of type `T` from buffer pointed to by `it` and converts it
+ * from LITTLE endian order.
  */
 template<order Order, typename T, typename InputIt>
 constexpr typename std::enable_if<Order == order::little, T>::type

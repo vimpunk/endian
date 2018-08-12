@@ -20,6 +20,9 @@ enum class order {
  * Parses `sizeof(T)` bytes from the memory pointed to by `it`, and reconstructs from it
  * an integer of type `T`, converting from the specified `Order` to host byte order.
  *
+ * The type of the iterator must represent a byte, that is:
+ * `sizeof(typename std::iterator_traits<InputIt>::value_type) == sizeof(char)`.
+ *
  * It's undefined behaviour if `it` points to a buffer smaller than `sizeof(T)` bytes.
  *
  * The byte sequence must have at least `sizeof(T)` bytes.
@@ -46,6 +49,9 @@ constexpr T parse(InputIt it) noexcept { return parse<Order, T>(it); }
 /**
  * Writes each byte of `h` to the memory pointed to by `it`, such that it converts the
  * byte order of `h` from host byte order to the specified `Order`.
+ *
+ * The type of the iterator must represent a byte, that is:
+ * `sizeof(typename std::iterator_traits<InputIt>::value_type) == sizeof(char)`.
  *
  * It's undefined behaviour if `it` points to a buffer smaller than `sizeof(T)` bytes.
  *
