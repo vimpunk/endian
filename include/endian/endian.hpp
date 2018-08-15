@@ -42,9 +42,10 @@ enum class order {
  */
 template<order Order, typename T, typename InputIt>
 constexpr T read(InputIt it) noexcept;
-// DEPRECATED
+
+// DEPRECATED: use `read` instead.
 template<order Order, typename T, typename InputIt>
-constexpr T parse(InputIt it) noexcept { return parse<Order, T>(it); }
+constexpr T parse(InputIt it) noexcept { return read<Order, T>(it); }
 
 /**
  * Writes each byte of `h` to the memory pointed to by `it`, such that it converts the
