@@ -2,6 +2,7 @@
 #define MND_ENDIAN_HEADER
 
 #include "detail/arch.hpp"
+#include "detail/type_traits.hpp"
 
 namespace endian {
 
@@ -40,7 +41,37 @@ enum class order {
  * int32_t n = endian::read<endian::order::big, int32_t>(buffer.data());
  * ```
  */
-template<order Order, typename T, typename InputIt>
+template<order Order, class T, class InputIt>
+MND_CONSTEXPR T read(InputIt it) noexcept;
+
+/**
+ * Parses `N` bytes from the memory pointed to by `it`, and reconstructs from it
+ * an unsigned integer of type `T` that is at least as large to fit `N` bytes
+ * (but at most 8 bytes), converting from the specified `Order` to host byte
+ * order.
+ *
+ * The value type of the iterator must represent a byte, that is:
+ * `sizeof(typename std::iterator_traits<InputIt>::value_type) == sizeof(char)`.
+ *
+ * It's undefined behaviour if `it` points to a buffer smaller than `sizeof(T)` bytes.
+ *
+ * The byte sequence must have at least `sizeof(T)` bytes.
+ * `Order` must be either `endian::order::big`, `endian::order::little`,
+ * `endian::order::network`, or `endian::order::host`.
+ *
+ * This is best used when data received during IO is read into a buffer and numbers
+ * need to be read from it. E.g.:
+ * ```
+ * std::array<char, 1024> buffer;
+ * // Receive into `buffer`.
+ * // ...
+ * // Assume that the first three bytes in `buffer` constitute a 24-bit big endian
+ * // integer.
+ * int32_t n = endian::read<endian::order::big, 3>(buffer.data());
+ * ```
+ */
+template<order Order, size_t N, class InputIt,
+    class T = typename detail::integral_type_for<N>::type>
 MND_CONSTEXPR T read(InputIt it) noexcept;
 
 // DEPRECATED: use `read` instead.

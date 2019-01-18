@@ -25,6 +25,28 @@ template<endian::order Order> void read2()
     assert(res == num);
 }
 
+template<endian::order Order> void read3()
+{
+    // Buffer size doesn't matter as long as it's at least N large. (N = 3)
+    char buffer[8];
+    const int32_t num = 0x00ffaabb;
+    endian::write<Order, 3>(num, buffer);
+    // NOTE: don't start reading from the beginning of the buffer as buffer
+    // contains a 4 byte value and we want 3 bytes.
+    const int32_t res = endian::read<Order, 3>(buffer);
+    std::printf("expected: 0x%x actual: 0x%x\n", num, res);
+    assert(res == num);
+}
+
+template<endian::order Order> void read4()
+{
+    char buffer[4];
+    const int32_t num = 0x0000a01f;
+    endian::write<Order, 3>(num, buffer);
+    const int32_t res = endian::read<Order, 3>(buffer);
+    assert(res == num);
+}
+
 void reverse()
 {
     const uint32_t orig = 1234;
@@ -48,6 +70,12 @@ int main()
 
     test::read2<endian::order::big>();
     test::read2<endian::order::little>();
+
+    test::read3<endian::order::big>();
+    test::read3<endian::order::little>();
+
+    test::read4<endian::order::big>();
+    test::read4<endian::order::little>();
 
     test::reverse();
     test::host_network_conv();

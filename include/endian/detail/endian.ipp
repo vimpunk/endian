@@ -9,16 +9,16 @@
 namespace endian {
 namespace detail {
 
-/**
- * Reads an integer of type `T` from buffer pointed to by `it` and converts it
+/** Reads an integer of type `T` from buffer pointed to by `it` and converts it
  * from BIG endian order.
  */
-template<order Order, typename T, typename InputIt>
+template<order Order, class T, class InputIt, size_t MaxNBytes = sizeof(T)>
 MND_CONSTEXPR typename std::enable_if<Order == order::big, T>::type
 read(InputIt it) noexcept
 {
+    static_assert(sizeof(T) >= MaxNBytes, "Can only read at most sizeof(T) bytes");
     T h = 0;
-    for(int i = 0; i < int(sizeof h); ++i)
+    for(int i = 0; i < int(MaxNBytes); ++i)
     {
         h <<= 8;
         h |= static_cast<uint8_t>(*it++);
@@ -30,35 +30,40 @@ read(InputIt it) noexcept
  * Reads an integer of type `T` from buffer pointed to by `it` and converts it
  * from LITTLE endian order.
  */
-template<order Order, typename T, typename InputIt>
+template<order Order, class T, class InputIt, size_t MaxNBytes = sizeof(T)>
 MND_CONSTEXPR typename std::enable_if<Order == order::little, T>::type
 read(InputIt it) noexcept
 {
+    static_assert(sizeof(T) >= MaxNBytes, "Can only read at most sizeof(T) bytes");
     T h = 0;
-    for(int i = 0; i < int(sizeof h); ++i)
+    for(int i = 0; i < int(MaxNBytes); ++i)
     {
         h |= static_cast<uint8_t>(*it++) << i * 8;
     }
     return h;
 }
 
+// --
+
 /** Converts `h` to BIG endian order, writing it to buffer pointed to by `it`. */
-template<order Order, typename T, typename OutputIt>
+template<order Order, class T, class OutputIt, size_t MaxNBytes = sizeof(T)>
 MND_CONSTEXPR typename std::enable_if<Order == order::big, void>::type
 write(const T& h, OutputIt it) noexcept
 {
-    for(int shift = 8 * (int(sizeof h) - 1); shift >= 0; shift -= 8)
+    static_assert(sizeof(T) >= MaxNBytes, "Can only write at most sizeof(T) bytes");
+    for(int shift = 8 * (int(MaxNBytes) - 1); shift >= 0; shift -= 8)
     {
         *it++ = static_cast<uint8_t>((h >> shift) & 0xff);
     }
 }
 
 /** Converts `h` to LITTLE endian order, writing it to buffer pointed to by `it`. */
-template<order Order, typename T, typename OutputIt>
+template<order Order, class T, class OutputIt, size_t MaxNBytes = sizeof(T)>
 MND_CONSTEXPR typename std::enable_if<Order == order::little, void>::type
 write(const T& h, OutputIt it) noexcept
 {
-    for(int i = 0; i < int(sizeof h); ++i)
+    static_assert(sizeof(T) >= MaxNBytes, "Can only write at most sizeof(T) bytes");
+    for(int i = 0; i < int(MaxNBytes); ++i)
     {
         *it++ = static_cast<uint8_t>((h >> i * 8) & 0xff);
     }
@@ -72,21 +77,21 @@ struct byte_swapper {};
 template<>
 struct byte_swapper<2>
 {
-    template<typename T>
+    template<class T>
     T operator()(const T& t) { return MND_BYTE_SWAP_16(t); }
 };
 
 template<>
 struct byte_swapper<4>
 {
-    template<typename T>
+    template<class T>
     T operator()(const T& t) { return MND_BYTE_SWAP_32(t); }
 };
 
 template<>
 struct byte_swapper<8>
 {
-    template<typename T>
+    template<class T>
     T operator()(const T& t) { return MND_BYTE_SWAP_64(t); }
 };
 
@@ -96,21 +101,21 @@ struct byte_swapper<8>
 template<order Order>
 struct conditional_reverser
 {
-    template<typename T>
+    template<class T>
     MND_CONSTEXPR T operator()(const T& t) { return reverse(t); }
 };
 
 template<>
 struct conditional_reverser<order::host>
 {
-    template<typename T>
+    template<class T>
     MND_CONSTEXPR T operator()(const T& t) { return t; }
 };
 #endif // MND_UNKNOWN_ENDIANNESS
 
 } // detail
 
-template<order Order, typename T, typename InputIt>
+template<order Order, class T, class InputIt>
 MND_CONSTEXPR T read(InputIt it) noexcept
 {
     static_assert(detail::is_endian_reversible<T>::value,
@@ -120,7 +125,16 @@ MND_CONSTEXPR T read(InputIt it) noexcept
     return detail::read<Order, T>(it);
 }
 
-template<order Order, typename T, typename OutputIt>
+template<order Order, size_t N, class InputIt, class T>
+MND_CONSTEXPR T read(InputIt it) noexcept
+{
+    static_assert(detail::is_endian_reversible<T>::value,
+        "T must be an integral or POD type");
+    // Read at most `N` bytes from `it`.
+    return detail::read<Order, T, InputIt, N>(it);
+}
+
+template<order Order, class T, class OutputIt>
 MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept
 {
     static_assert(detail::is_endian_reversible<T>::value,
@@ -130,7 +144,15 @@ MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept
     detail::write<Order, T>(h, it);
 }
 
-template<typename T>
+template<order Order, size_t N, class T, class OutputIt>
+MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept 
+{
+    static_assert(detail::is_endian_reversible<T>::value,
+        "T must be an integral or POD type");
+    detail::write<Order, T, OutputIt, N>(h, it);
+}
+
+template<class T>
 MND_CONSTEXPR T reverse(const T& t)
 {
     return detail::byte_swapper<sizeof t>()(t);

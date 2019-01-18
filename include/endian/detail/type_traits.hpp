@@ -30,6 +30,25 @@ struct is_input_iterator<T, void_t<
         decltype(std::declval<T&>()++)>>
     : std::true_type {};
 
+template <size_t N>
+struct integral_type_for
+{
+    static_assert(N <= 8, "N may be at most 8 bytes large");
+    using type = typename std::conditional<
+        (N > sizeof(uint8_t)),
+        typename std::conditional<
+            (N > sizeof(uint16_t)),
+            typename std::conditional<
+                (N > sizeof(uint32_t)),
+                uint64_t,
+                uint32_t
+            >::type,
+            uint16_t
+        >::type,
+        uint8_t
+    >::type;
+};
+
 } // detail
 } // endian
 
