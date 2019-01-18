@@ -74,6 +74,29 @@ template<order Order, size_t N, class InputIt,
     class T = typename detail::integral_type_for<N>::type>
 MND_CONSTEXPR T read(InputIt it) noexcept;
 
+/**
+ * Convenience method that takes a `Container` and depending on the size of the
+ * container, parses an integer of the corresponding width. Note that the return
+ * value must be the largest possible type as the integer's widht can only be
+ * determined at runtime.
+ */
+template<order Order, class Contaner, class = std::declval<Contaner>().data(),
+    class = std::declval<Contaner>().data()>
+MND_CONSTEXPR uint64_t read(const Container& c) noexcept
+{
+    switch(c.size()) {
+    case 1: return read<Order, 1>(c.data());
+    case 2: return read<Order, 2>(c.data());
+    case 3: return read<Order, 3>(c.data());
+    case 4: return read<Order, 4>(c.data());
+    case 5: return read<Order, 5>(c.data());
+    case 6: return read<Order, 6>(c.data());
+    case 7: return read<Order, 7>(c.data());
+    case 8: return read<Order, 8>(c.data());
+    default: return 0;
+    }
+}
+
 // DEPRECATED: use `read` instead.
 template<order Order, class T, class InputIt>
 MND_CONSTEXPR T parse(InputIt it) noexcept { return read<Order, T>(it); }
