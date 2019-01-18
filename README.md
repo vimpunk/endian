@@ -25,6 +25,14 @@ const int16_t number = 42;
 endian::write<endian::order::network>(number, buffer.data());
 ```
 
+You can also read and parse arbitrary width integers in the range [1, 8] specified in bytes .
+```
+const uint32_t three_bytes = 0xaabbcc;
+endian::write<endian::order::big, 3>(number, buffer.data());
+auto res = endian::read<endian::order::big, 3(buffer.data());
+assert(res = three_bytes);
+```
+
 ### Reversing byte order
 
 ```c++
