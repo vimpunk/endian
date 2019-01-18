@@ -20,7 +20,7 @@ enum class order {
  * Parses `sizeof(T)` bytes from the memory pointed to by `it`, and reconstructs from it
  * an integer of type `T`, converting from the specified `Order` to host byte order.
  *
- * The type of the iterator must represent a byte, that is:
+ * The value type of the iterator must represent a byte, that is:
  * `sizeof(typename std::iterator_traits<InputIt>::value_type) == sizeof(char)`.
  *
  * It's undefined behaviour if `it` points to a buffer smaller than `sizeof(T)` bytes.
@@ -41,17 +41,17 @@ enum class order {
  * ```
  */
 template<order Order, typename T, typename InputIt>
-constexpr T read(InputIt it) noexcept;
+MND_CONSTEXPR T read(InputIt it) noexcept;
 
 // DEPRECATED: use `read` instead.
-template<order Order, typename T, typename InputIt>
-constexpr T parse(InputIt it) noexcept { return read<Order, T>(it); }
+template<order Order, class T, class InputIt>
+MND_CONSTEXPR T parse(InputIt it) noexcept { return read<Order, T>(it); }
 
 /**
  * Writes each byte of `h` to the memory pointed to by `it`, such that it converts the
  * byte order of `h` from host byte order to the specified `Order`.
  *
- * The type of the iterator must represent a byte, that is:
+ * The value type of the iterator must represent a byte, that is:
  * `sizeof(typename std::iterator_traits<InputIt>::value_type) == sizeof(char)`.
  *
  * It's undefined behaviour if `it` points to a buffer smaller than `sizeof(T)` bytes.
@@ -71,22 +71,52 @@ constexpr T parse(InputIt it) noexcept { return read<Order, T>(it); }
  * endian::write<endian::order::little>(number, &buffer[4]);
  * ```
  */
-template<order Order, typename T, typename OutputIt>
-constexpr void write(const T& h, OutputIt it) noexcept;
+template<order Order, class T, class OutputIt>
+MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept;
+
+/**
+ * Writes the first `N` byte of `h` to the memory pointed to by `it`, such that it converts the
+ * byte order of `h` from host byte order to the specified `Order`. Thus `N`
+ * must be at most `sizeof(h)`.
+ *
+ * The value type of the iterator must represent a byte, that is:
+ * `sizeof(typename std::iterator_traits<InputIt>::value_type) == sizeof(char)`.
+ *
+ * It's undefined behaviour if `it` points to a buffer smaller than `N` bytes.
+ *
+ * The byte sequence must have at least `N` bytes.
+ * `Order` must be either `endian::order::big`, `endian::order::little`,
+ * `endian::order::network`, or `endian::order::host`.
+ *
+ * This is best used when data transferred during IO is written to a buffer first, and
+ * among the data to be written are integers. E.g.:
+ * ```
+ * std::array<char, 1024> buffer;
+ * const int32_t number = 42;
+ * // Write a three byte `number` as a big endian number to `buffer`.
+ * endian::write<endian::order::big, 3>(number, &buffer[0]);
+ * // Write a three byte `number` as a little endian number to `buffer`.
+ * endian::write<endian::order::little, 3>(number, &buffer[4]);
+ * ```
+ */
+template<order Order, size_t N, class T, class OutputIt>
+MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept;
 
 /**
  * Reverses endianness, i.e. the byte order in `t`. E.g. given the 16-bit number
  * '0x1234', this function returns '0x4321'.
  */
-template<typename T>
-constexpr T reverse(const T& t);
+template<class T>
+MND_CONSTEXPR T reverse(const T& t);
 
+#ifndef MND_UNKNOWN_ENDIANNESS
+/// These are only available if your platform has a defined endianness.
 /**
  * Conditionally converts to the specified endianness if and only if the host's byte
  * order differs from `Order`.
  */
-template<order Order, typename T>
-constexpr T conditional_convert(const T& t) noexcept;
+template<order Order, class T>
+MND_CONSTEXPR T conditional_convert(const T& t) noexcept;
 
 /**
  * Conditionally converts to network byte order if and only if the host's byte order is
@@ -102,8 +132,8 @@ constexpr T conditional_convert(const T& t) noexcept;
  * t = endian::conditional_convert<endian::order::network>(t);
  * ```
  */
-template<typename T>
-constexpr T host_to_network(const T& t);
+template<class T>
+MND_CONSTEXPR T host_to_network(const T& t);
 
 /**
  * Conditionally converts to host byte order if and only if the host's byte order is
@@ -119,8 +149,9 @@ constexpr T host_to_network(const T& t);
  * t = endian::conditional_convert<endian::order::network>(t);
  * ```
  */
-template<typename T>
-constexpr T network_to_host(const T& t);
+template<class T>
+MND_CONSTEXPR T network_to_host(const T& t);
+#endif // MND_UNKNOWN_ENDIANNESS
 
 } // endian
 

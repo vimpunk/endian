@@ -2,6 +2,7 @@
 #define MND_TYPE_TRAITS_HEADER
 
 #include <type_traits>
+#include <cstdint>
 
 namespace endian {
 namespace detail {
@@ -9,6 +10,7 @@ namespace detail {
 template<typename T>
 struct is_endian_reversible
 {
+    // TODO: is is_pod right?
     static constexpr bool value = std::is_integral<T>::value || std::is_pod<T>::value;
 };
 

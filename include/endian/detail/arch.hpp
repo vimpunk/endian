@@ -3,6 +3,13 @@
 
 #include <cstddef> // for __GLIBC__
 
+// C++11 and below don't support contexpr as used here.
+#if __cplusplus >= 201300
+# define MND_CONSTEXPR constexpr 
+#else
+# define MND_CONSTEXPR
+#endif
+
 // Ported from boost/predef/other/endian.h.
 
 //  Copyright (C) 2012 David Stone
@@ -35,7 +42,7 @@
 # elif defined(__LITTLE_ENDIAN) && (__BYTE_ORDER == __LITTLE_ENDIAN)
 #  define MND_LITTLE_ENDIAN
 # else
-#  error "Your architecture is not supported."
+#  define MND_UNKNOWN_ENDIANNESS
 # endif
 #elif defined(_BYTE_ORDER)
 # if defined(_BIG_ENDIAN) && (_BYTE_ORDER == _BIG_ENDIAN)
@@ -43,10 +50,10 @@
 # elif defined(_LITTLE_ENDIAN) && (_BYTE_ORDER == _LITTLE_ENDIAN)
 #  define MND_LITTLE_ENDIAN
 # else
-#  error "Your architecture is not supported."
+#  define MND_UNKNOWN_ENDIANNESS
 # endif
 #else
-# error "Your architecture is not supported."
+# define MND_UNKNOWN_ENDIANNESS
 #endif
 
 #ifndef __has_builtin
@@ -54,10 +61,10 @@
 #endif
 
 #if defined(_MSC_VER)
-//  Microsoft documents these as being compatible since Windows 95 and specifically
-//  lists runtime library support since Visual Studio 2003 (aka 7.1).
-//  Clang/c2 uses the Microsoft rather than GCC intrinsics, so we check for
-//  defined(_MSC_VER) before defined(__clang__).
+// Microsoft documents these as being compatible since Windows 95 and
+// specifically lists runtime library support since Visual Studio 2003 (aka
+// 7.1).  Clang/c2 uses the Microsoft rather than GCC intrinsics, so we check
+// for defined(_MSC_VER) before defined(__clang__).
 # include <cstdlib>
 # define MND_BYTE_SWAP_16(x) _byteswap_ushort(x)
 # define MND_BYTE_SWAP_32(x) _byteswap_ulong(x)
@@ -105,8 +112,8 @@ constexpr uint32_t swap_u32(uint32_t n) noexcept
 
 constexpr uint64_t swap_u64(uint64_t n) noexcept
 {
-    n = ((n << 8)  & 0xFF00FF00FF00FF00ULL) | ((n >> 8)  & 0x00FF00FF00FF00FFULL);
-    n = ((n << 16) & 0xFFFF0000FFFF0000ULL) | ((n >> 16) & 0x0000FFFF0000FFFFULL);
+    n = ((n << 8)  & 0xFF00FF00FF00FF00ull) | ((n >> 8)  & 0x00FF00FF00FF00FFull);
+    n = ((n << 16) & 0xFFFF0000FFFF0000ull) | ((n >> 16) & 0x0000FFFF0000FFFFull);
     return (n << 32) | (n >> 32);
 }
 

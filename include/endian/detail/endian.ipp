@@ -14,7 +14,7 @@ namespace detail {
  * from BIG endian order.
  */
 template<order Order, typename T, typename InputIt>
-constexpr typename std::enable_if<Order == order::big, T>::type
+MND_CONSTEXPR typename std::enable_if<Order == order::big, T>::type
 read(InputIt it) noexcept
 {
     T h = 0;
@@ -31,7 +31,7 @@ read(InputIt it) noexcept
  * from LITTLE endian order.
  */
 template<order Order, typename T, typename InputIt>
-constexpr typename std::enable_if<Order == order::little, T>::type
+MND_CONSTEXPR typename std::enable_if<Order == order::little, T>::type
 read(InputIt it) noexcept
 {
     T h = 0;
@@ -44,7 +44,7 @@ read(InputIt it) noexcept
 
 /** Converts `h` to BIG endian order, writing it to buffer pointed to by `it`. */
 template<order Order, typename T, typename OutputIt>
-constexpr typename std::enable_if<Order == order::big, void>::type
+MND_CONSTEXPR typename std::enable_if<Order == order::big, void>::type
 write(const T& h, OutputIt it) noexcept
 {
     for(int shift = 8 * (int(sizeof h) - 1); shift >= 0; shift -= 8)
@@ -55,7 +55,7 @@ write(const T& h, OutputIt it) noexcept
 
 /** Converts `h` to LITTLE endian order, writing it to buffer pointed to by `it`. */
 template<order Order, typename T, typename OutputIt>
-constexpr typename std::enable_if<Order == order::little, void>::type
+MND_CONSTEXPR typename std::enable_if<Order == order::little, void>::type
 write(const T& h, OutputIt it) noexcept
 {
     for(int i = 0; i < int(sizeof h); ++i)
@@ -92,24 +92,26 @@ struct byte_swapper<8>
 
 // --
 
+#ifndef MND_UNKNOWN_ENDIANNESS
 template<order Order>
 struct conditional_reverser
 {
     template<typename T>
-    constexpr T operator()(const T& t) { return reverse(t); }
+    MND_CONSTEXPR T operator()(const T& t) { return reverse(t); }
 };
 
 template<>
 struct conditional_reverser<order::host>
 {
     template<typename T>
-    constexpr T operator()(const T& t) { return t; }
+    MND_CONSTEXPR T operator()(const T& t) { return t; }
 };
+#endif // MND_UNKNOWN_ENDIANNESS
 
 } // detail
 
 template<order Order, typename T, typename InputIt>
-constexpr T read(InputIt it) noexcept
+MND_CONSTEXPR T read(InputIt it) noexcept
 {
     static_assert(detail::is_endian_reversible<T>::value,
         "T must be an integral or POD type");
@@ -119,7 +121,7 @@ constexpr T read(InputIt it) noexcept
 }
 
 template<order Order, typename T, typename OutputIt>
-constexpr void write(const T& h, OutputIt it) noexcept
+MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept
 {
     static_assert(detail::is_endian_reversible<T>::value,
         "T must be an integral or POD type");
@@ -129,30 +131,32 @@ constexpr void write(const T& h, OutputIt it) noexcept
 }
 
 template<typename T>
-constexpr T reverse(const T& t)
+MND_CONSTEXPR T reverse(const T& t)
 {
     return detail::byte_swapper<sizeof t>()(t);
 }
 
-template<order Order, typename T>
-constexpr T conditional_convert(const T& t) noexcept
+#ifndef MND_UNKNOWN_ENDIANNESS
+template<order Order, class T>
+MND_CONSTEXPR T conditional_convert(const T& t) noexcept
 {
     return detail::conditional_reverser<Order>()(t);
 }
 
-template<typename T>
-constexpr T host_to_network(const T& t)
+template<class T>
+MND_CONSTEXPR T host_to_network(const T& t)
 {
     return conditional_convert<order::network>(t);
 }
 
-template<typename T>
-constexpr T network_to_host(const T& t)
+template<class T>
+MND_CONSTEXPR T network_to_host(const T& t)
 {
     // hton and ntoh are essentially the same, as they both do a byte swap if and only
     // if the host's and network's byte orders differ.
     return host_to_network(t);
 }
+#endif // MND_UNKNOWN_ENDIANNESS
 
 } // endian
 
