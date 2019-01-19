@@ -1,5 +1,4 @@
-#include "../include/endian/endian.hpp"
-#include "../include/endian/detail/arch.hpp"
+#include "endian.hpp"
 #include <cassert>
 #include <cstdio>
 #include <typeinfo>
