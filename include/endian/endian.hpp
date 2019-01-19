@@ -6,7 +6,7 @@
 
 namespace endian {
 
-enum class order {
+enum order {
     little,
     big,
     network = big,

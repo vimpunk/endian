@@ -15,21 +15,21 @@ Convert from Network Byte Order to Host Byte Order, e.g. when using a receive bu
 ```c++
 std::vector<char> buffer;
 // ... receive data into buffer
-const int64_t i = endian::read<endian::order::network, int64_t>(buffer.data());
+const int64_t i = endian::read<endian::network, int64_t>(buffer.data());
 ```
 
 Convert from Host Byte Order to Network Byte Order, e.g. when using a send buffer.
 ```c++
 std::vector<char> buffer;
 const int16_t number = 42; 
-endian::write<endian::order::network>(number, buffer.data());
+endian::write<endian::network>(number, buffer.data());
 ```
 
 You can also read and parse arbitrary width integers in the range [1, 8] specified in bytes .
 ```c++
 const uint32_t three_bytes = 0xaabbcc;
-endian::write<endian::order::big, 3>(number, buffer.data());
-auto res = endian::read<endian::order::big, 3>(buffer.data());
+endian::write<endian::big, 3>(number, buffer.data());
+auto res = endian::read<endian::big, 3>(buffer.data());
 assert(res = three_bytes);
 ```
 
@@ -56,7 +56,7 @@ const int16_t b = endian::reverse(a);
 
 Alternatively, only reverse byte order if target endianness and host's endianness differ.
 ```c++
-const auto i = endian::conditional_reverse<endian::order::big>(42);
+const auto i = endian::conditional_reverse<endian::big>(42);
 ```
 
 ### ntoh, hton
