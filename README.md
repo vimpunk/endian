@@ -46,7 +46,13 @@ number = endian::read_le<int64_t>(buffer.data());
 number = endian::read_be<int64_t>(buffer.data());
 ```
 
-### Reversing byte order
+### Platform specific functions
+
+Note that these functions are only available if you're on one of the supported
+platforms (where host byte order could be determined). As such, the following
+functions are conditionally enabled with a preprocessor flag.
+
+#### Reversing byte order
 
 ```c++
 const int16_t a = 0x1234; 
@@ -59,7 +65,7 @@ Alternatively, only reverse byte order if target endianness and host's endiannes
 const auto i = endian::conditional_reverse<endian::big>(42);
 ```
 
-### ntoh, hton
+#### ntoh, hton
 
 Convenience function to conditionally convert to Network Byte Order, same as the POSIX hton function.
 ```c++
