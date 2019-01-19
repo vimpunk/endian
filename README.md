@@ -33,6 +33,19 @@ auto res = endian::read<endian::order::big, 3>(buffer.data());
 assert(res = three_bytes);
 ```
 
+There are also aliases provided:
+```c++
+endian::write_le<3>(number, buffer.data());
+endian::write_be<3>(number, buffer.data());
+endian::write_le<int32_t>(number, buffer.data());
+endian::write_be<int32_t>(number, buffer.data());
+
+number = endian::read_le<5>(buffer.data());
+number = endian::read_be<5>(buffer.data());
+number = endian::read_le<int64_t>(buffer.data());
+number = endian::read_be<int64_t>(buffer.data());
+```
+
 ### Reversing byte order
 
 ```c++

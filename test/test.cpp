@@ -61,6 +61,23 @@ void host_network_conv()
     assert(conv == orig);
 }
 
+void typedefs()
+{
+    char buffer[4];
+    const int32_t num = 0x0000a01f;
+    endian::write_le(num, buffer);
+    auto res1 = endian::read_le<4>(buffer);
+    assert(res1 == num);
+    res1 = endian::read_le<int32_t>(buffer);
+    assert(res1 == num);
+
+    endian::write_be(num, buffer);
+    auto res2 = endian::read_be<4>(buffer);
+    assert(res2 == num);
+    res2 = endian::read_be<int32_t>(buffer);
+    assert(res2 == num);
+}
+
 } // test
 
 int main()
@@ -76,6 +93,8 @@ int main()
 
     test::read4<endian::order::big>();
     test::read4<endian::order::little>();
+
+    test::typedefs();
 
     test::reverse();
     test::host_network_conv();

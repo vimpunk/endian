@@ -44,6 +44,18 @@ enum class order {
 template<order Order, class T, class InputIt>
 MND_CONSTEXPR T read(InputIt it) noexcept;
 
+template<class T, class InputIt>
+MND_CONSTEXPR T read_le(InputIt it) noexcept
+{
+    return read<order::little, T>(it);
+}
+
+template<class T, class InputIt>
+MND_CONSTEXPR T read_be(InputIt it) noexcept
+{
+    return read<order::big, T>(it);
+}
+
 /**
  * Parses `N` bytes from the memory pointed to by `it`, and reconstructs from it
  * an unsigned integer of type `T` that is at least as large to fit `N` bytes
@@ -73,6 +85,20 @@ MND_CONSTEXPR T read(InputIt it) noexcept;
 template<order Order, size_t N, class InputIt,
     class T = typename detail::integral_type_for<N>::type>
 MND_CONSTEXPR T read(InputIt it) noexcept;
+
+template<size_t N, class InputIt,
+    class T = typename detail::integral_type_for<N>::type>
+MND_CONSTEXPR T read_le(InputIt it) noexcept
+{
+    return read<order::little, N>(it);
+}
+
+template<size_t N, class InputIt,
+    class T = typename detail::integral_type_for<N>::type>
+MND_CONSTEXPR T read_be(InputIt it) noexcept
+{
+    return read<order::big, N>(it);
+}
 
 // DEPRECATED: use `read` instead.
 template<order Order, class T, class InputIt>
@@ -105,6 +131,18 @@ MND_CONSTEXPR T parse(InputIt it) noexcept { return read<Order, T>(it); }
 template<order Order, class T, class OutputIt>
 MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept;
 
+template<class T, class OutputIt>
+MND_CONSTEXPR void write_le(const T& h, OutputIt it) noexcept
+{
+    write<order::little>(h, it);
+}
+
+template<class T, class OutputIt>
+MND_CONSTEXPR void write_be(const T& h, OutputIt it) noexcept
+{
+    write<order::big>(h, it);
+}
+
 /**
  * Writes the first `N` byte of `h` to the memory pointed to by `it`, such that it converts the
  * byte order of `h` from host byte order to the specified `Order`. Thus `N`
@@ -132,6 +170,18 @@ MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept;
  */
 template<order Order, size_t N, class T, class OutputIt>
 MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept;
+
+template<size_t N, class T, class OutputIt>
+MND_CONSTEXPR void write_le(const T& h, OutputIt it) noexcept
+{
+    write<order::little, N>(h, it);
+}
+
+template<size_t N, class T, class OutputIt>
+MND_CONSTEXPR void write_be(const T& h, OutputIt it) noexcept
+{
+    write<order::big, N>(h, it);
+}
 
 /**
  * Reverses endianness, i.e. the byte order in `t`. E.g. given the 16-bit number
