@@ -4,7 +4,7 @@ A small, but much needed utility library for any program that needs to handle nu
 
 ## Usage
 
-This is a header-only library, so just place the contents of the `include` folder in your system wide or project's include directory. Then, use the library by including endian, i.e.:
+This is a header-only library, so just place `endian.hpp` in your system wide or project's include directory. Then, use the library by including endian, i.e.:
 ```c++
 #include <endian.hpp>
 ```
